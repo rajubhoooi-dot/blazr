@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tumblr on My Site</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* Sidebar Styles (hidden by default) */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -250px;
+      width: 250px;
+      height: 100vh;
+      background: #fff;
+      box-shadow: 2px 0 10px rgba(0,0,0,.1);
+      transition: left .3s ease;
+      z-index: 999;
+      padding: 70px 15px 20px;
+      overflow-y: auto;
+    }
+    .sidebar.visible { left: 0; }
+    .sidebar h3 {
+      margin: 0 0 15px;
+      font-size: 18px;
+      color: #333;
+      text-align: center;
+    }
+    .sidebar a {
+      display: block;
+      padding: 8px 12px;
+      color: #d32f2f;
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 5px;
+      margin: 3px 0;
+      transition: background .2s;
+    }
+    .sidebar a:hover { background: #f5f5f5; }
+    .sidebar .close-sidebar {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+    }
+
+    /* === HEADER: LIVE COUNT CENTERED === */
+    header {
+      background: #fff;
+      padding: 16px 15px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 99;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+    .live-count {
+      font-size: 18px;
+      font-weight: 700;
+      color: #d32f2f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .live-count i {
+      color: #4caf50;
+      font-size: 12px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 200px; }
+    }
+
+    /* === MODAL FOR BLOGS LIST === */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+    .modal.visible { display: flex; }
+    .modal-content {
+      background: #fff;
+      width: 100%;
+      max-width: 500px;
+      max-height: 80vh;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      padding: 1rem 1.5rem;
+      background: #d32f2f;
+      color: white;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .modal-body {
+      padding: 1rem 1.5rem;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    .blog-item {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #eee;
+    }
+    .blog-item:last-child { border-bottom: none; }
+    .blog-item a {
+      color: #d32f2f;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .blog-item a:hover { text-decoration: underline; }
+    .no-blogs {
+      text-align: center;
+      color: #777;
+      font-style: italic;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER: LIVE COUNT ONLY -->
+<header>
+  <div class="live-count">
+    <i class="fas fa-circle"></i>
+    <span id="liveCount">1,234</span> online
+  </div>
+</header>
+
+<main id="feed"></main>
+
+<!-- SIDEBAR (UNCHANGED) -->
+<div class="sidebar" id="sidebar">
+  <button class="close-sidebar" id="closeSidebar">X</button>
+  <h3>Popular Blogs</h3>
+  <a href="#" onclick="searchBlog('2face2')">2face2</a>
+  <a href="#" onclick="searchBlog('appreciation6')">appreciation6</a>
+  <a href="#" onclick="searchBlog('almightyyyyyyyy')">almightyyyyyyyy</a>
+  <a href="#" onclick="searchBlog('anna-lisachristiane')">anna-lisachristiane</a>
+  <a href="#" onclick="searchBlog('alexmucciblog')">alexmucciblog</a>
+  <a href="#" onclick="searchBlog('baddabyng')">baddabyng</a>
+  <a href="#" onclick="searchBlog('baddiesdaily')">baddiesdaily</a>
+  <a href="#" onclick="searchBlog('absolutelashers')">absolutelashers</a>
+  <a href="#" onclick="searchBlog('beautifulwomen8910')">beautifulwomen8910</a>
+  <a href="#" onclick="searchBlog('curvesheaven')">curvesheaven</a>
+  <a href="#" onclick="searchBlog('cristotof')">cristotof</a>
+  <a href="#" onclick="searchBlog('chloesheartdesires')">chloesheartdesires</a>
+  <a href="#" onclick="searchBlog('black-rose-2')">black-rose-2</a>
+  <a href="#" onclick="searchBlog('bloghotwheels')">bloghotwheels</a>
+  <a href="#" onclick="searchBlog('demirose-model-blog')">demirose-model-blog</a>
+  <a href="#" onclick="searchBlog('bombstic-blog')">bombstic-blog</a>
+  <a href="#" onclick="searchBlog('donttellmeyourewoke')">donttellmeyourewoke</a>
+  <a href="#" onclick="searchBlog('ifyoudarethatuser')">ifyoudarethatuser</a>
+  <a href="#" onclick="searchBlog('hautcoutureabby')">hautcoutureabby</a>
+  <a href="#" onclick="searchBlog('iwantyouandyouknowit')">iwantyouandyouknowit</a>
+  <a href="#" onclick="searchBlog('elifmusa')">elifmusa</a>
+  <a href="#" onclick="searchBlog('garyglamour-thethird')">garyglamour-thethird</a>
+  <a href="#" onclick="searchBlog('goslowhand')">goslowhand</a>
+  <a href="#" onclick="searchBlog('hot-girls-wearing-fishnet-100')">hot-girls-wearing-fishnet-100</a>
+  <a href="#" onclick="searchBlog('enhancedchicks')">enhancedchicks</a>
+  <a href="#" onclick="searchBlog('goslowhand2')">goslowhand2</a>
+  <a href="#" onclick="searchBlog('lebojohnb')">lebojohnb</a>
+  <a href="#" onclick="searchBlog('lacikaysomersfanclub')">lacikaysomersfanclub</a>
+  <a href="#" onclick="searchBlog('jsc-julianne-kissinger')">jsc-julianne-kissinger</a>
+  <a href="#" onclick="searchBlog('joesbest')">joesbest</a>
+  <a href="#" onclick="searchBlog('jack-mongrel7')">jack-mongrel7</a>
+  <a href="#" onclick="searchBlog('lavitadivina')">lavitadivina</a>
+  <a href="#" onclick="searchBlog('lizzobetumblin')">lizzobetumblin</a>
+  <a href="#" onclick="searchBlog('ithurtswhennn')">ithurtswhennn</a>
+  <a href="#" onclick="searchBlog('loudeaglekitty')">loudeaglekitty</a>
+  <a href="#" onclick="searchBlog('lspdbfgsam')">lspdbfgsam</a>
+  <a href="#" onclick="searchBlog('maddycheary')">maddycheary</a>
+  <a href="#" onclick="searchBlog('masonlily')">masonlily</a>
+  <a href="#" onclick="searchBlog('meowbarbie')">meowbarbie</a>
+  <a href="#" onclick="searchBlog('marynabokova')">marynabokova</a>
+  <a href="#" onclick="searchBlog('mikesmodelsinmotion')">mikesmodelsinmotion</a>
+  <a href="#" onclick="searchBlog('lure-of-woman')">lure-of-woman</a>
+  <a href="#" onclick="searchBlog('pinkistheprettiest')">pinkistheprettiest</a>
+  <a href="#" onclick="searchBlog('niv3n')">niv3n</a>
+  <a href="#" onclick="searchBlog('singledigitsalary')">singledigitsalary</a>
+  <a href="#" onclick="searchBlog('oxfordstud2025')">oxfordstud2025</a>
+  <a href="#" onclick="searchBlog('nicenthicksstuff')">nicenthicksstuff</a>
+  <a href="#" onclick="searchBlog('sensualgirlbottom')">sensualgirlbottom</a>
+  <a href="#" onclick="searchBlog('pandorakaaki')">pandorakaaki</a>
+  <a href="#" onclick="searchBlog('pleazagirl3')">pleazagirl3</a>
+  <a href="#" onclick="searchBlog('suh-xyyy')">suh-xyyy</a>
+  <a href="#" onclick="searchBlog('temptingvaleriec')">temptingvaleriec</a>
+  <a href="#" onclick="searchBlog('thecottonwoodkid')">thecottonwoodkid</a>
+  <a href="#" onclick="searchBlog('toes-of-a-troll')">toes-of-a-troll</a>
+  <a href="#" onclick="searchBlog('thickxsassy')">thickxsassy</a>
+  <a href="#" onclick="searchBlog('some-needful-things')">some-needful-things</a>
+  <a href="#" onclick="searchBlog('sonimariatorresgil')">sonimariatorresgil</a>
+  <a href="#" onclick="searchBlog('stunninghot')">stunninghot</a>
+  <a href="#" onclick="searchBlog('valerie-cossett')">valerie-cossett</a>
+  <a href="#" onclick="searchBlog('ydoll')">ydoll</a>
+  <a href="#" onclick="searchBlog('all')">all</a>
+</div>
+
+<!-- FOOTER (UNCHANGED EXCEPT HEART BUTTON NOW OPENS MODAL) -->
+<footer>
+  <div class="footer-left">
+    <a href="bloglist.html">
+      <i class="far fa-heart footer-btn"></i>
+    </a>
+  </div>
+  <div class="search-bar">
+    <i class="fas fa-search"></i>
+    <input type="text" placeholder="Blog name or #hashtag" id="searchInput">
+  </div>
+  <div class="footer-right">
+    <i class="fas fa-bars footer-btn" id="menuBtn"></i>
+  </div>
+</footer>
+
+<!-- === MODAL: LIST OF BLOGS FROM blogs/ FOLDER === -->
+<div class="modal" id="blogsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>My Articles</span>
+      <button id="closeModal">X</button>
+    </div>
+    <div class="modal-body" id="blogsList">
+      <p class="no-blogs">Loading articles...</p>
+    </div>
+  </div>
+</div>
+
+<script src="js/tumblr-feed.js"></script>
+
+<script>
+  // === LIVE COUNT: INCREASE EVERY 10 SEC ===
+  const liveCountEl = document.getElementById('liveCount');
+  let count = localStorage.getItem('live_count') ? parseInt(localStorage.getItem('live_count')) : Math.floor(Math.random() * 800) + 400;
+
+  function updateLiveCount() {
+    count += Math.floor(Math.random() * 4) + 1;
+    liveCountEl.textContent = count.toLocaleString();
+    localStorage.setItem('live_count', count);
+  }
+
+  updateLiveCount();
+  setInterval(updateLiveCount, 10000);
+
+  // === MODAL: SHOW BLOGS FROM blogs/ ===
+  const modal = document.getElementById('blogsModal');
+  const openBtn = document.getElementById('openBlogsModal');
+  const closeBtn = document.getElementById('closeModal');
+  const blogsList = document.getElementById('blogsList');
+
+  openBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    modal.classList.add('visible');
+    loadBlogs();
+  });
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.remove('visible');
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('visible');
+  });
+
+  async function loadBlogs() {
+    try {
+      const res = await fetch('blogs/index.json');
+      if (!res.ok) throw new Error();
+      const files = await res.json();
+      const mdFiles = files.filter(f => f.toLowerCase().endsWith('.md'));
+
+      if (mdFiles.length === 0) {
+        blogsList.innerHTML = '<p class="no-blogs">No articles found in blogs/</p>';
+        return;
+      }
+
+      const listHtml = mdFiles.map(file => {
+        const title = file
+          .replace(/\.md$/i, '')
+          .replace(/-/g, ' ')
+          .replace(/\b\w/g, c => c.toUpperCase());
+        return `<div class="blog-item"><a href="blogs/${encodeURIComponent(file)}" target="_blank">${title}</a></div>`;
+      }).join('');
+
+      blogsList.innerHTML = listHtml;
+    } catch (err) {
+      blogsList.innerHTML = '<p class="no-blogs">Could not load articles. Create <code>blogs/index.json</code>.</p>';
+    }
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background:#fff; padding-bottom:80px; }
+    .container { max-width:100%; margin:0 auto; padding:1rem; }
+    .post-header { display:flex; align-items:center; margin-bottom:1rem; }
+    .post-avatar { width:40px; height:40px; border-radius:50%; background:#ddd; margin-right:0.8rem; }
+    .post-user { font-weight:600; }
+    .post-time { color:#999; font-size:0.8rem; }
+    .post-img { width:100%; border-radius:16px; margin:1rem 0; }
+    .post-content { font-size:1rem; line-height:1.7; }
+    .post-actions { display:flex; justify-content:space-between; margin:1rem 0; font-size:1.4rem; }
+    .action-btn { color:#333; cursor:pointer; }
+    .action-btn.active { color:#d32f2f; }
+    .error { background:#ffebee; color:#d32f2f; padding:1rem; border-radius:12px; margin:1rem 0; text-align:center; }
+
+    .related { margin-top:2rem; }
+    .related h3 { font-size:1rem; margin-bottom:0.8rem; color:#d32f2f; }
+    .related-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; }
+    .related-card {
+      background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.1);
+      border:1px solid #eee; display:flex; flex-direction:column;
+    }
+    .related-img { width:100%; height:80px; object-fit:cover; }
+    .related-title {
+      padding:0.5rem; font-size:0.8rem; font-weight:600; text-align:center;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+
+    footer {
+      position:fixed; bottom:0; left:0; right:0; background:#fff;
+      border-top:1px solid #eee; display:flex; align-items:center;
+      justify-content:space-between; padding:10px 15px; z-index:100;
+    }
+    .footer-left, .footer-right { width:50px; text-align:center; }
+    .search-bar { flex:1; margin:0 10px; position:relative; }
+    .search-bar input {
+      width:100%; padding:10px 35px; border:1px solid #ddd; border-radius:25px; font-size:14px;
+    }
+    .search-bar i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#999; }
+    .footer-btn { font-size:20px; color:#d32f2f; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="post-header">
+    <div class="post-avatar"></div>
+    <div>
+      <div class="post-user" id="title">Loading...</div>
+      <div class="post-time" id="meta"></div>
+    </div>
+  </div>
+
+  <div id="content">Loading post...</div>
+
+  <div class="post-actions">
+    <i class="far fa-heart action-btn" id="likeBtn"></i>
+    <i class="far fa-comment action-btn"></i>
+    <i class="far fa-paper-plane action-btn" onclick="sharePost()"></i>
+  </div>
+
+  <div class="related">
+    <h3>More Stories</h3>
+    <div class="related-grid" id="relatedGrid">Loading...</div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <a href="index.html"><i class="far fa-heart footer-btn"></i></a>
+  </div>
+  <div class="search-bar">
+    <i class="fas fa-search"></i>
+    <input type="text" placeholder="Search blogs..." id="searchInput">
+  </div>
+  <div class="footer-right">
+    <a href="index.html"><i class="fas fa-home footer-btn"></i></a>
+  </div>
+</footer>
+
+<script>
+  // MARKDOWN TO HTML
+  function mdToHtml(md) {
+    if (!md) return '<p>No content.</p>';
+    return md
+      .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="post-img">')
+      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="color:#d32f2f;">$1</a>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/```([\s\S]*?)```/g, '<pre style="background:#f6f8fa;padding:1rem;border-radius:12px;overflow-x:auto;margin:1rem 0;">$1</pre>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>');
+  }
+
+  // GET FILE FROM URL
+  const params = new URLSearchParams(location.search);
+  const file = params.get('id');
+
+  if (!file) {
+    document.getElementById('content').innerHTML = '<div class="error">No post selected.</div>';
+  } else {
+    fetch('blogs/' + file)
+      .then(r => {
+        if (!r.ok) throw new Error('Post not found: ' + file);
+        return r.text();
+      })
+      .then(md => {
+        let title = file.replace(/\.md$/i, '').replace(/^\d+[_ -]*/, '').trim();
+        let date = '';
+        let body = md;
+
+        const fm = md.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+        if (fm) {
+          body = md.replace(fm[0], '').trim();
+          fm[1].split('\n').forEach(l => {
+            const [k, ...v] = l.split(':');
+            if (k === 'title') title = v.join(':').trim();
+            if (k === 'date') date = new Date(v.join(':').trim()).toLocaleDateString();
+          });
+        }
+
+        document.getElementById('title').textContent = title;
+        document.getElementById('meta').textContent = date;
+        document.getElementById('content').innerHTML = '<p>' + mdToHtml(body) + '</p>';
+
+        loadRelated(file);
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('content').innerHTML = `<div class="error">${err.message}</div>`;
+      });
+  }
+
+  // RELATED POSTS WITH TITLE + IMAGE
+  async function loadRelated(current) {
+    try {
+      const res = await fetch('blogs/index.json');
+      if (!res.ok) return;
+      const files = await res.json();
+      const related = files
+        .filter(f => f !== current)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3);
+
+      const html = await Promise.all(related.map(async (f) => {
+        let img = 'https://picsum.photos/200/200?random=' + Math.random();
+        let title = f.replace(/\.md$/i, '').replace(/^\d+[_ -]*/, '').trim();
+
+        try {
+          const res = await fetch(`blogs/${f}`);
+          if (res.ok) {
+            const md = await res.text();
+            const fm = md.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+            if (fm) {
+              fm[1].split('\n').forEach(l => {
+                const [k, ...v] = l.split(':');
+                if (k === 'title') title = v.join(':').trim();
+              });
+            }
+            const imgMatch = md.match(/!\[.*?\]\((.*?)\)/);
+            if (imgMatch) img = imgMatch[1];
+          }
+        } catch {}
+
+        return `
+          <a href="detail.html?id=${encodeURIComponent(f)}">
+            <div class="related-card">
+              <img src="${img}" class="related-img" loading="lazy">
+              <div class="related-title">${title}</div>
+            </div>
+          </a>
+        `;
+      }));
+
+      document.getElementById('relatedGrid').innerHTML = html.join('');
+    } catch (e) {
+      console.error("Related failed:", e);
+    }
+  }
+
+  // SHARE
+  function sharePost() {
+    if (navigator.share) {
+      navigator.share({ title: document.getElementById('title').textContent, url: location.href });
+    } else {
+      navigator.clipboard.writeText(location.href);
+      alert('Link copied!');
+    }
+  }
+
+  // LIKE
+  document.getElementById('likeBtn').addEventListener('click', function() {
+    this.classList.toggle('fas');
+    this.classList.toggle('far');
+    this.classList.toggle('active');
+  });
+</script>
+
+</body>
+</html>
